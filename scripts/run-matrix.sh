@@ -4,6 +4,7 @@ set -euo pipefail
 : "${RATE:?Set RATE to the calibrated requests/sec value}"
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
+WARMUP="${WARMUP:-20s}"
 DURATION="${DURATION:-60s}"
 REPETITIONS="${REPETITIONS:-5}"
 
@@ -20,12 +21,24 @@ HOT_SETS=(100 20 5 1)
 mkdir -p results
 
 for repetition in $(seq 1 "${REPETITIONS}"); do
+  combinations=()
   for hot_set in "${HOT_SETS[@]}"; do
     for strategy in "${STRATEGIES[@]}"; do
-      output="results/${strategy}_hot${hot_set}_run${repetition}.json"
-      echo "==> strategy=${strategy} hot_set=${hot_set} run=${repetition}"
-      k6 run         -e BASE_URL="${BASE_URL}"         -e RATE="${RATE}"         -e DURATION="${DURATION}"         -e STRATEGY="${strategy}"         -e HOT_SET="${hot_set}"         --summary-export "${output}"         k6/benchmark.js
-      sleep 10
+      combinations+=("${strategy}:${hot_set}")
     done
+  done
+
+  mapfile -t shuffled < <(printf '%s\n' "${combinations[@]}" | shuf)
+
+  for combination in "${shuffled[@]}"; do
+    strategy="${combination%%:*}"
+    hot_set="${combination##*:}"
+    output="results/${strategy}_hot${hot_set}_run${repetition}.json"
+
+    echo "==> strategy=${strategy} hot_set=${hot_set} run=${repetition}"
+
+    k6 run       -e BASE_URL="${BASE_URL}"       -e RATE="${RATE}"       -e WARMUP="${WARMUP}"       -e DURATION="${DURATION}"       -e STRATEGY="${strategy}"       -e HOT_SET="${hot_set}"       --summary-export "${output}"       k6/benchmark.js
+
+    sleep 10
   done
 done
