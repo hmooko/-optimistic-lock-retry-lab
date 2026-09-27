@@ -100,6 +100,35 @@ The initial matrix is:
 
 Each repetition randomizes the 24 strategy/hot-set combinations to reduce time-order effects.
 
+## Result aggregation
+
+Each matrix run writes a small, stable JSON document containing the experiment metadata and the four primary metrics. Aggregate the completed matrix with:
+
+    python scripts/aggregate_results.py
+
+This creates:
+
+- `results/runs.csv`: one row per experiment run
+- `results/summary.csv`: one row per strategy/hot-set group with n, median, mean, standard deviation, Q1, and Q3
+
+The summary CSV is intended to be the direct input for the paper's throughput, p99 latency, retry amplification, and failure-rate figures.
+
+## Correctness verification
+
+The test suite includes a MySQL 8.4 Testcontainers integration test. For all six strategies it launches concurrent updates and verifies that:
+
+- final stock = initial stock - successful transactions
+- the JPA version equals the number of successful committed updates
+- retry-exhausted optimistic requests do not mutate stock
+
+Run all Java tests with:
+
+    mvn test
+
+The CSV aggregator also has a standard-library Python unit test:
+
+    python -m unittest scripts/test_aggregate_results.py
+
 ## Server allocation
 
 Recommended allocation inside the 8 vCPU / 16 GB RAM / 100 GB storage limit:
@@ -129,11 +158,12 @@ Initial runtime settings:
     k6/benchmark.js               constant-arrival-rate workload
     scripts/calibrate.sh          offered-load calibration
     scripts/run-matrix.sh         full experiment matrix
+    scripts/aggregate_results.py  JSON-to-CSV aggregation
 
-## Next steps
+## Remaining experiment-time work
 
-- add an integration test proving no lost updates for all six strategies
-- randomize the final experiment run order
-- add CSV aggregation for median/error bars
-- add Prometheus/Grafana only as secondary diagnostics
-- pin the final JVM/MySQL OS-level settings used for the paper
+The benchmark implementation is complete enough to collect the paper dataset. Before the final run:
+
+- calibrate and freeze the offered request rate on the real three-server environment
+- pin the production JVM/MySQL/OS settings used in the paper
+- optionally add Prometheus/Grafana as secondary diagnostics; these are not required for the primary result graphs
