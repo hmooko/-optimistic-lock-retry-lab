@@ -31,7 +31,7 @@ This avoids conflating higher server load with higher data contention.
 Primary metrics:
 
 1. successful throughput
-2. p99 end-to-end latency
+2. p99 end-to-end purchase latency (measurement phase only)
 3. retry amplification = total retries / successful requests
 4. final failure rate after retry exhaustion
 
@@ -79,7 +79,7 @@ The 400 RPS value is only a local example. The paper should use a calibrated loa
 
 Run:
 
-    ./scripts/calibrate.sh
+    bash scripts/calibrate.sh
 
 Use a request rate below the non-contention saturation point. The intended procedure is:
 
@@ -92,13 +92,13 @@ Use a request rate below the non-contention saturation point. The intended proce
 
 After calibration:
 
-    RATE=500 ./scripts/run-matrix.sh
+    RATE=500 bash scripts/run-matrix.sh
 
 The initial matrix is:
 
     6 strategies x 4 hot-set sizes x 5 repetitions = 120 runs
 
-The current script uses a deterministic order for easy debugging. Before collecting the final paper dataset, experiment order should be randomized to reduce time-order effects.
+Each repetition randomizes the 24 strategy/hot-set combinations to reduce time-order effects.
 
 ## Server allocation
 
