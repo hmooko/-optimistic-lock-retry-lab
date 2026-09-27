@@ -4,7 +4,7 @@ set -euo pipefail
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 WARMUP="${WARMUP:-10s}"
 DURATION="${DURATION:-30s}"
-RATES=(100 200 300 400 500 600)
+read -r -a RATES <<< "${RATES:-100 200 300 400 500 600}"
 
 mkdir -p results/calibration
 
