@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: retry-lab-mysql
+    restart: unless-stopped
+    cpus: "3.0"
+    mem_limit: 8g
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-retry_lab}
+      MYSQL_USER: ${MYSQL_USER:-retry_lab}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in deploy/db/.env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in deploy/db/.env}
+    command:
+      - --transaction-isolation=READ-COMMITTED
+      - --innodb-buffer-pool-size=4G
+      - --innodb-flush-log-at-trx-commit=1
+      - --skip-log-bin
+      - --skip-name-resolve
+    volumes:
+      - ${MYSQL_DATA_DIR:-/data/mysql}:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
