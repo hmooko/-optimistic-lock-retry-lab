@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/app/Dockerfile
+    image: optimistic-lock-retry-lab-app:experiment
+    container_name: retry-lab-app
+    restart: unless-stopped
+    cpus: "2.0"
+    mem_limit: 4g
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: ${DB_URL:?set DB_URL in deploy/app/.env}
+      DB_USERNAME: ${DB_USERNAME:?set DB_USERNAME in deploy/app/.env}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/app/.env}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-32}
+      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-8}
+      TOMCAT_MAX_THREADS: ${TOMCAT_MAX_THREADS:-200}
+      MAX_RETRIES: ${MAX_RETRIES:-5}
+      FIXED_DELAY_MS: ${FIXED_DELAY_MS:-20}
+      EXP_BASE_MS: ${EXP_BASE_MS:-5}
+      EXP_CAP_MS: ${EXP_CAP_MS:-80}
+      JITTER_RATIO: ${JITTER_RATIO:-0.5}
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms2g -Xmx2g -XX:+ExitOnOutOfMemoryError}
+    stop_grace_period: 30s
