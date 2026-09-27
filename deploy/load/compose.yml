@@ -1,0 +1,9 @@
+services:
+  k6:
+    image: grafana/k6:2.3.0
+    working_dir: /work
+    cpus: "2.0"
+    mem_limit: 2g
+    volumes:
+      - ../..:/work
+    entrypoint: ["k6"]
