@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS product (
+    id BIGINT NOT NULL,
+    stock BIGINT NOT NULL,
+    version BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB;
