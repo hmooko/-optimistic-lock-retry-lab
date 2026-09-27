@@ -1,0 +1,19 @@
+services:
+  k6:
+    image: grafana/k6:2.3.0
+    working_dir: /work
+    network_mode: host
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    cpus: "2.0"
+    mem_limit: 2g
+    volumes:
+      - ../..:/work
+    entrypoint: ["k6"]
+
+  python:
+    image: python:3.12-alpine
+    working_dir: /work
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - ../..:/work
+    entrypoint: ["python"]
