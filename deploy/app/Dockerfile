@@ -7,7 +7,7 @@ RUN mvn -B -q -DskipTests dependency:go-offline
 COPY src ./src
 RUN mvn -B -DskipTests package
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21.0.12_8-jre-noble
 WORKDIR /app
 
 COPY --from=build /workspace/target/optimistic-lock-retry-lab-0.0.1-SNAPSHOT.jar /app/app.jar
