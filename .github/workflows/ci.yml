@@ -10,10 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - name: Test
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Java unit and MySQL integration tests
         run: mvn -B test
+
+      - name: Result aggregator tests
+        run: python -m unittest scripts/test_aggregate_results.py
