@@ -7,10 +7,10 @@ services:
     cpus: "3.0"
     mem_limit: 8g
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-retry_lab}
-      MYSQL_USER: ${MYSQL_USER:-retry_lab}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in deploy/db/.env}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in deploy/db/.env}
+      MYSQL_DATABASE: retry_lab
+      MYSQL_USER: retry_lab
+      MYSQL_PASSWORD: retry-lab-2026
+      MYSQL_ROOT_PASSWORD: root-retry-lab-2026
     command:
       - --transaction-isolation=READ-COMMITTED
       - --innodb-buffer-pool-size=4G
@@ -20,7 +20,7 @@ services:
     volumes:
       - ${MYSQL_DATA_DIR:-/data/mysql}:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot-retry-lab-2026"]
       interval: 5s
       timeout: 3s
       retries: 30

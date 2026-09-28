@@ -38,8 +38,8 @@ jobs:
 
       - name: Validate experiment Compose files
         run: |
-          docker compose --env-file deploy/app/.env.example -f deploy/app/compose.yml config >/dev/null
-          docker compose --env-file deploy/db/.env.example -f deploy/db/compose.yml config >/dev/null
+          docker compose -f deploy/app/compose.yml config >/dev/null
+          docker compose -f deploy/db/compose.yml config >/dev/null
           HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f deploy/load/compose.yml config >/dev/null
 
       - name: Build experiment application image
