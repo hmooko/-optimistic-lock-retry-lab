@@ -60,6 +60,7 @@ No App/DB `.env` file is required.
 - Spring Boot: 4.1.1
 - MySQL: 8.4.11
 - k6: 2.3.0
+- k6 pre-allocated VUs: 500 (maximum 1000 per scenario)
 - result aggregation: Python 3.12 container
 
 ## 1. Install Docker and Git
@@ -178,7 +179,7 @@ If 600 RPS is still well below saturation:
 
     BASE_URL=http://10.0.0.20:8080     RATES="800 1000 1200 1400"     bash scripts/calibrate.sh
 
-Calibration uses `HOT_SET=1000` and `OPT_IMMEDIATE`.
+Calibration uses `HOT_SET=1000` and `OPT_IMMEDIATE`. k6 pre-allocates 500 VUs so transient VU allocation does not create artificial dropped iterations before the target system is saturated.
 
 Choose approximately 80% of the highest stable offered rate while checking:
 

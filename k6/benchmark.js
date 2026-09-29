@@ -11,7 +11,7 @@ const WARMUP = __ENV.WARMUP || '20s';
 const DURATION = __ENV.DURATION || '60s';
 const REPETITION = Number(__ENV.REPETITION || 1);
 const OUTPUT = __ENV.OUTPUT || 'summary.json';
-const PRE_ALLOCATED_VUS = Number(__ENV.PRE_ALLOCATED_VUS || 100);
+const PRE_ALLOCATED_VUS = Number(__ENV.PRE_ALLOCATED_VUS || 500);
 const MAX_VUS = Number(__ENV.MAX_VUS || 1000);
 
 const successfulPurchases = new Counter('successful_purchases');
