@@ -186,12 +186,24 @@ Calibration uses `HOT_SET=1000` and `OPT_IMMEDIATE`. k6 pre-allocates 500 VUs so
 
 Choose approximately 80% of the highest stable offered rate while checking:
 
-- `droppedIterations = 0`
+- measurement-phase `droppedIterations = 0`
 - Load CPU is not saturated
 - App CPU is not saturated
 - DB CPU and I/O are not saturated
 
-After choosing the final RATE, do not change the experiment configuration until all measured runs are complete.
+The structured result JSON reports:
+- `droppedIterations`: measurement-phase dropped iterations only
+- `warmupDroppedIterations`: warm-up dropped iterations
+- `totalDroppedIterations`: warm-up + measurement dropped iterations
+
+After choosing a candidate RATE, validate it under the worst contention level before starting the full matrix:
+
+    BASE_URL=http://10.0.0.20:8080 RATE=1000 \
+      bash scripts/run-worst-case-pilot.sh
+
+The worst-case pilot runs all six strategies at `HOT_SET=1`, using 1000 pre-allocated VUs and a maximum of 3000 VUs per scenario by default. All six runs must finish with measurement-phase `droppedIterations = 0`. Override `PRE_ALLOCATED_VUS` or `MAX_VUS` only during pilot validation if necessary, and keep the chosen values fixed for the measured experiment.
+
+After choosing the final RATE and VU settings, do not change the experiment configuration until all measured runs are complete.
 
 ## 7. Optional live monitoring from macOS
 
@@ -288,7 +300,7 @@ Each run uses:
 
 The 24 strategy/hot-set combinations are shuffled for each repetition.
 
-All final runs should have `droppedIterations = 0`.
+All final runs should have measurement-phase `droppedIterations = 0`. Warm-up dropped iterations are recorded separately and are not used as the validity threshold.
 
 ## 10. Aggregate results
 
@@ -335,6 +347,7 @@ The concurrency integration test checks all six strategies and verifies that com
     k6/benchmark.js                constant-arrival-rate workload
     scripts/smoke-test.sh          smoke test
     scripts/calibrate.sh           load calibration
+    scripts/run-worst-case-pilot.sh six-strategy HOT_SET=1 validation
     scripts/run-matrix.sh          120-run experiment matrix
     scripts/aggregate-results-docker.sh
     scripts/record-docker-environment.sh

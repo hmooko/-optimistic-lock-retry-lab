@@ -43,7 +43,7 @@ export const options = {
     },
   },
   thresholds: {
-    dropped_iterations: ['count==0'],
+    'dropped_iterations{scenario:measure}': ['count==0'],
   },
 };
 
@@ -102,6 +102,22 @@ export function handleSummary(data) {
   const retryCount = metricValue(data, 'retry_attempts', 'count', 0);
   const p99LatencyMs = metricValue(data, 'purchase_latency', 'p(99)', null);
   const durationSeconds = parseDurationSeconds(DURATION);
+  const totalDroppedIterations = metricValue(
+    data,
+    'dropped_iterations',
+    'count',
+    0
+  );
+  const droppedIterations = metricValue(
+    data,
+    'dropped_iterations{scenario:measure}',
+    'count',
+    0
+  );
+  const warmupDroppedIterations = Math.max(
+    0,
+    totalDroppedIterations - droppedIterations
+  );
 
   const completed = successCount + failureCount;
   const result = {
@@ -113,6 +129,8 @@ export function handleSummary(data) {
       duration: DURATION,
       durationSeconds,
       repetition: REPETITION,
+      preAllocatedVUs: PRE_ALLOCATED_VUS,
+      maxVUs: MAX_VUS,
     },
     metrics: {
       successCount,
@@ -122,7 +140,9 @@ export function handleSummary(data) {
       p99LatencyMs,
       retryAmplification: successCount > 0 ? retryCount / successCount : null,
       failureRate: completed > 0 ? failureCount / completed : null,
-      droppedIterations: metricValue(data, 'dropped_iterations', 'count', 0),
+      droppedIterations,
+      warmupDroppedIterations,
+      totalDroppedIterations,
     },
   };
 

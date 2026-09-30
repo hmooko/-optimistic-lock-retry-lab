@@ -35,10 +35,14 @@ jobs:
           bash -n scripts/aggregate-results-docker.sh
           bash -n scripts/smoke-test.sh
           bash -n scripts/record-docker-environment.sh
+          bash -n scripts/run-worst-case-pilot.sh
           bash -n scripts/setup-monitoring-exporters.sh
           bash -n scripts/monitoring-tunnels.sh
           bash -n scripts/start-monitoring.sh
           bash -n scripts/stop-monitoring.sh
+
+      - name: Validate k6 benchmark script
+        run: HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f deploy/load/compose.yml run --rm -T k6 inspect k6/benchmark.js >/dev/null
 
       - name: Validate experiment Compose files
         run: |
