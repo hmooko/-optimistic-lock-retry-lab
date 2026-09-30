@@ -61,6 +61,9 @@ No App/DB `.env` file is required.
 - MySQL: 8.4.11
 - k6: 2.3.0
 - k6 pre-allocated VUs: 500 (maximum 1000 per scenario)
+- Node Exporter: 1.12.1
+- Prometheus: 3.15.0
+- Grafana OSS: 13.2.2
 - result aggregation: Python 3.12 container
 
 ## 1. Install Docker and Git
@@ -190,7 +193,55 @@ Choose approximately 80% of the highest stable offered rate while checking:
 
 After choosing the final RATE, do not change the experiment configuration until all measured runs are complete.
 
-## 7. Record environment
+## 7. Optional live monitoring from macOS
+
+For the experiment setup used in this repository, Prometheus and Grafana run on the MacBook while lightweight Node Exporter containers run on the three Linux servers. Metrics travel through SSH tunnels, so ports 9100 and 8080 do not need to be opened publicly.
+
+Prerequisites on the MacBook:
+
+- Docker Desktop is running.
+- VPN access to the experiment private network is active.
+- SSH key authentication works for the aliases `retry-app`, `retry-db`, and `retry-load`.
+
+Install or refresh Node Exporter on all three servers:
+
+    bash scripts/setup-monitoring-exporters.sh
+
+Start the SSH tunnels, Prometheus, and Grafana:
+
+    bash scripts/start-monitoring.sh
+
+Open:
+
+    Grafana:    http://localhost:3000
+    Prometheus: http://localhost:9090/targets
+
+Grafana login:
+
+    username: admin
+    password: retry-lab-grafana
+
+The Prometheus data source and the `Retry Lab Monitoring` dashboard are provisioned automatically. The dashboard includes host CPU, memory, disk I/O, network I/O, JVM heap, HikariCP connections, GC activity, and scrape-target status.
+
+Check tunnel status:
+
+    bash scripts/monitoring-tunnels.sh status
+
+Stop local monitoring:
+
+    bash scripts/stop-monitoring.sh
+
+If different SSH aliases are used, override them:
+
+    APP_SSH=my-app DB_SSH=my-db LOAD_SSH=my-load \
+      bash scripts/setup-monitoring-exporters.sh
+
+    APP_SSH=my-app DB_SSH=my-db LOAD_SSH=my-load \
+      bash scripts/start-monitoring.sh
+
+Monitoring metrics are diagnostic only. Paper result metrics such as throughput, p99 latency, retry amplification, and final failure rate continue to come from the k6 result JSON files. Keep the monitoring configuration unchanged across all measured runs.
+
+## 8. Record environment
 
 Before the final experiment:
 
@@ -208,7 +259,7 @@ Load server:
 
 Keep the generated `results/environment/` files with the experiment artifacts.
 
-## 8. Main experiment
+## 9. Main experiment
 
 Example with a calibrated rate of 800 RPS:
 
@@ -237,7 +288,7 @@ The 24 strategy/hot-set combinations are shuffled for each repetition.
 
 All final runs should have `droppedIterations = 0`.
 
-## 9. Aggregate results
+## 10. Aggregate results
 
 Run on the Load server:
 
