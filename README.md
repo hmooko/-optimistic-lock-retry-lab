@@ -203,9 +203,11 @@ Prerequisites on the MacBook:
 - VPN access to the experiment private network is active.
 - SSH key authentication works for the aliases `retry-app`, `retry-db`, and `retry-load`.
 
-Install or refresh Node Exporter on all three servers:
+Update all three server repositories to the latest `main` revision and install or refresh Node Exporter:
 
     bash scripts/setup-monitoring-exporters.sh
+
+The setup script connects to `retry-app`, `retry-db`, and `retry-load`, requires each remote checkout to be on a clean `main` branch, runs `git pull --ff-only origin main`, prints the resulting Git revision, and then starts Node Exporter. If a server has tracked local changes or is on another branch, the script stops instead of silently changing the experiment environment.
 
 Start the SSH tunnels, Prometheus, and Grafana:
 
