@@ -35,12 +35,17 @@ jobs:
           bash -n scripts/aggregate-results-docker.sh
           bash -n scripts/smoke-test.sh
           bash -n scripts/record-docker-environment.sh
+          bash -n scripts/setup-monitoring-exporters.sh
+          bash -n scripts/monitoring-tunnels.sh
+          bash -n scripts/start-monitoring.sh
+          bash -n scripts/stop-monitoring.sh
 
       - name: Validate experiment Compose files
         run: |
           docker compose -f deploy/app/compose.yml config >/dev/null
           docker compose -f deploy/db/compose.yml config >/dev/null
           HOST_UID="$(id -u)" HOST_GID="$(id -g)" docker compose -f deploy/load/compose.yml config >/dev/null
+          docker compose -f monitoring/compose.yml config >/dev/null
 
       - name: Build experiment application image
         run: docker build -f deploy/app/Dockerfile -t optimistic-lock-retry-lab-app:ci .
