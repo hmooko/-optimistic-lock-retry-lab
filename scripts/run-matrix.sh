@@ -7,6 +7,8 @@ BASE_URL="${BASE_URL:-http://localhost:8080}"
 WARMUP="${WARMUP:-20s}"
 DURATION="${DURATION:-60s}"
 REPETITIONS="${REPETITIONS:-5}"
+PRE_ALLOCATED_VUS="${PRE_ALLOCATED_VUS:-1000}"
+MAX_VUS="${MAX_VUS:-3000}"
 
 STRATEGIES=(
   PESSIMISTIC
@@ -37,7 +39,7 @@ for repetition in $(seq 1 "${REPETITIONS}"); do
 
     echo "==> strategy=${strategy} hot_set=${hot_set} run=${repetition}"
 
-    bash scripts/run-k6-docker.sh run       -e BASE_URL="${BASE_URL}"       -e RATE="${RATE}"       -e WARMUP="${WARMUP}"       -e DURATION="${DURATION}"       -e REPETITION="${repetition}"       -e OUTPUT="${output}"       -e STRATEGY="${strategy}"       -e HOT_SET="${hot_set}"       k6/benchmark.js
+    bash scripts/run-k6-docker.sh run       -e BASE_URL="${BASE_URL}"       -e RATE="${RATE}"       -e WARMUP="${WARMUP}"       -e DURATION="${DURATION}"       -e REPETITION="${repetition}"       -e OUTPUT="${output}"       -e STRATEGY="${strategy}"       -e HOT_SET="${hot_set}"       -e PRE_ALLOCATED_VUS="${PRE_ALLOCATED_VUS}"       -e MAX_VUS="${MAX_VUS}"       k6/benchmark.js
 
     sleep 10
   done
