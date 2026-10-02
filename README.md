@@ -60,7 +60,8 @@ No App/DB `.env` file is required.
 - Spring Boot: 4.1.1
 - MySQL: 8.4.11
 - k6: 2.3.0
-- k6 pre-allocated VUs: 500 (maximum 1000 per scenario)
+- k6 calibration defaults: 500 pre-allocated VUs (maximum 1000 per scenario)
+- k6 main matrix: 1000 pre-allocated VUs (maximum 3000 per scenario)
 - Node Exporter: 1.12.1
 - Prometheus: 3.15.0
 - Grafana OSS: 13.2.2
@@ -275,9 +276,20 @@ Keep the generated `results/environment/` files with the experiment artifacts.
 
 ## 9. Main experiment
 
-Example with a calibrated rate of 800 RPS:
+Validated final offered rate: 800 RPS. The worst-case HOT_SET=1 pilot passed all six strategies with zero measurement-phase dropped iterations using 1000 pre-allocated VUs and a maximum of 3000 VUs per scenario.
 
-    BASE_URL=http://10.0.0.20:8080     RATE=800     bash scripts/run-matrix.sh
+Run:
+
+    BASE_URL=http://10.0.0.20:8080 \
+      RATE=800 \
+      bash scripts/run-matrix.sh
+
+The main-matrix script defaults to the validated VU capacity:
+
+    PRE_ALLOCATED_VUS=1000
+    MAX_VUS=3000
+
+These values may be overridden explicitly, but they should remain fixed across all measured runs.
 
 The matrix is:
 
