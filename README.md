@@ -61,7 +61,7 @@ No App/DB `.env` file is required.
 - MySQL: 8.4.11
 - k6: 2.3.0
 - k6 calibration defaults: 500 pre-allocated VUs (maximum 1000 per scenario)
-- k6 main matrix: 1000 pre-allocated VUs (maximum 3000 per scenario)
+- k6 main matrix: 1500 pre-allocated VUs (maximum 3000 per scenario)
 - Node Exporter: 1.12.1
 - Prometheus: 3.15.0
 - Grafana OSS: 13.2.2
@@ -202,7 +202,7 @@ After choosing a candidate RATE, validate it under the worst contention level be
     BASE_URL=http://10.0.0.20:8080 RATE=1000 \
       bash scripts/run-worst-case-pilot.sh
 
-The worst-case pilot runs all six strategies at `HOT_SET=1`, using 1000 pre-allocated VUs and a maximum of 3000 VUs per scenario by default. All six runs must finish with measurement-phase `droppedIterations = 0`. Override `PRE_ALLOCATED_VUS` or `MAX_VUS` only during pilot validation if necessary, and keep the chosen values fixed for the measured experiment.
+The worst-case pilot runs all six strategies at `HOT_SET=1`, using 1500 pre-allocated VUs and a maximum of 3000 VUs per scenario by default. A 10-second warm-up drain window separates the end of offered warm-up load from the start of measurement so long-running warm-up requests do not overlap the measured phase. All six runs must finish with measurement-phase `droppedIterations = 0`. Override `PRE_ALLOCATED_VUS` or `MAX_VUS` only during pilot validation if necessary, and keep the chosen values fixed for the measured experiment.
 
 After choosing the final RATE and VU settings, do not change the experiment configuration until all measured runs are complete.
 
@@ -276,7 +276,7 @@ Keep the generated `results/environment/` files with the experiment artifacts.
 
 ## 9. Main experiment
 
-Validated final offered rate: 800 RPS. The worst-case HOT_SET=1 pilot passed all six strategies with zero measurement-phase dropped iterations using 1000 pre-allocated VUs and a maximum of 3000 VUs per scenario.
+Candidate final offered rate: 800 RPS. Revalidate the worst-case HOT_SET=1 pilot after any change to the warm-up/measurement boundary or VU capacity before starting the measured matrix.
 
 Run:
 
@@ -286,7 +286,8 @@ Run:
 
 The main-matrix script defaults to the validated VU capacity:
 
-    PRE_ALLOCATED_VUS=1000
+    WARMUP_DRAIN=10s
+    PRE_ALLOCATED_VUS=1500
     MAX_VUS=3000
 
 These values may be overridden explicitly, but they should remain fixed across all measured runs.
@@ -306,7 +307,8 @@ Contention levels:
 
 Each run uses:
 
-- 20 s warm-up
+- 20 s warm-up offered load
+- 10 s warm-up drain window
 - 60 s measurement
 - 10 s pause
 
