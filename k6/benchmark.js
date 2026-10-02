@@ -8,11 +8,13 @@ const STRATEGY = __ENV.STRATEGY || 'OPT_IMMEDIATE';
 const HOT_SET = Number(__ENV.HOT_SET || 100);
 const RATE = Number(__ENV.RATE || 400);
 const WARMUP = __ENV.WARMUP || '20s';
+const WARMUP_DRAIN = __ENV.WARMUP_DRAIN || '10s';
 const DURATION = __ENV.DURATION || '60s';
 const REPETITION = Number(__ENV.REPETITION || 1);
 const OUTPUT = __ENV.OUTPUT || 'summary.json';
 const PRE_ALLOCATED_VUS = Number(__ENV.PRE_ALLOCATED_VUS || 500);
 const MAX_VUS = Number(__ENV.MAX_VUS || 1000);
+const MEASURE_START = `${parseDurationSeconds(WARMUP) + parseDurationSeconds(WARMUP_DRAIN)}s`;
 
 const successfulPurchases = new Counter('successful_purchases');
 const failedPurchases = new Counter('failed_purchases');
@@ -27,6 +29,7 @@ export const options = {
       rate: RATE,
       timeUnit: '1s',
       duration: WARMUP,
+      gracefulStop: WARMUP_DRAIN,
       preAllocatedVUs: PRE_ALLOCATED_VUS,
       maxVUs: MAX_VUS,
       exec: 'purchase',
@@ -35,7 +38,7 @@ export const options = {
       executor: 'constant-arrival-rate',
       rate: RATE,
       timeUnit: '1s',
-      startTime: WARMUP,
+      startTime: MEASURE_START,
       duration: DURATION,
       preAllocatedVUs: PRE_ALLOCATED_VUS,
       maxVUs: MAX_VUS,
@@ -126,6 +129,7 @@ export function handleSummary(data) {
       hotSet: HOT_SET,
       rate: RATE,
       warmup: WARMUP,
+      warmupDrain: WARMUP_DRAIN,
       duration: DURATION,
       durationSeconds,
       repetition: REPETITION,
