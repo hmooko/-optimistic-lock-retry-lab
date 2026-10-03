@@ -31,6 +31,7 @@ jobs:
         run: |
           bash -n scripts/calibrate.sh
           bash -n scripts/run-matrix.sh
+          bash -n scripts/run-tx-work-matrix.sh
           bash -n scripts/run-k6-docker.sh
           bash -n scripts/aggregate-results-docker.sh
           bash -n scripts/smoke-test.sh
