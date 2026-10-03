@@ -4,10 +4,14 @@ import io.github.hmooko.retrylab.retry.RetryDelayPolicy;
 import io.github.hmooko.retrylab.retry.RetrySettings;
 import java.util.concurrent.TimeUnit;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class PurchaseService {
+    private static final long MAX_TX_WORK_MS = 1_000L;
+
     private final PurchaseTransactionService transactionService;
     private final RetryDelayPolicy retryDelayPolicy;
     private final RetrySettings retrySettings;
@@ -23,10 +27,15 @@ public class PurchaseService {
     }
 
     public PurchaseResponse purchase(long productId, PurchaseStrategy strategy) {
+        return purchase(productId, strategy, 0L);
+    }
+
+    public PurchaseResponse purchase(long productId, PurchaseStrategy strategy, long txWorkMs) {
+        validateTxWorkMs(txWorkMs);
         long startedAt = System.nanoTime();
 
         if (strategy == PurchaseStrategy.PESSIMISTIC) {
-            transactionService.purchasePessimistic(productId);
+            transactionService.purchasePessimistic(productId, txWorkMs);
             return new PurchaseResponse(strategy, 1, 0, elapsedMicros(startedAt));
         }
 
@@ -36,7 +45,7 @@ public class PurchaseService {
         while (true) {
             attempts++;
             try {
-                transactionService.purchaseOptimistic(productId);
+                transactionService.purchaseOptimistic(productId, txWorkMs);
                 return new PurchaseResponse(strategy, attempts, retries, elapsedMicros(startedAt));
             } catch (OptimisticLockingFailureException conflict) {
                 if (retries >= retrySettings.maxRetries()) {
@@ -48,6 +57,14 @@ public class PurchaseService {
                 retries++;
                 sleep(delayMillis);
             }
+        }
+    }
+
+    private void validateTxWorkMs(long txWorkMs) {
+        if (txWorkMs < 0 || txWorkMs > MAX_TX_WORK_MS) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "txWorkMs must be between 0 and " + MAX_TX_WORK_MS);
         }
     }
 
