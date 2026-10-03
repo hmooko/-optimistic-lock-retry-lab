@@ -18,16 +18,46 @@ public class PurchaseTransactionService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void purchaseOptimistic(long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> notFound(productId));
-        product.decreaseStock();
+        purchaseOptimisticInternal(productId, 0L);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void purchaseOptimistic(long productId, long txWorkMs) {
+        purchaseOptimisticInternal(productId, txWorkMs);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void purchasePessimistic(long productId) {
+        purchasePessimisticInternal(productId, 0L);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void purchasePessimistic(long productId, long txWorkMs) {
+        purchasePessimisticInternal(productId, txWorkMs);
+    }
+
+    private void purchaseOptimisticInternal(long productId, long txWorkMs) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> notFound(productId));
+        product.decreaseStock();
+        simulateBusinessWork(txWorkMs);
+    }
+
+    private void purchasePessimisticInternal(long productId, long txWorkMs) {
         Product product = productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> notFound(productId));
         product.decreaseStock();
+        simulateBusinessWork(txWorkMs);
+    }
+
+    private void simulateBusinessWork(long txWorkMs) {
+        if (txWorkMs <= 0) return;
+        try {
+            Thread.sleep(txWorkMs);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("synthetic transaction work interrupted", interrupted);
+        }
     }
 
     private ResponseStatusException notFound(long productId) {

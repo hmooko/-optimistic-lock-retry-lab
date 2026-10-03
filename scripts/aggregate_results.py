@@ -109,6 +109,7 @@ def load_runs(pattern: str) -> list[dict]:
             "hotSet": hot_set,
             "contention": CONTENTION_LABEL.get(hot_set, f"hot-{hot_set}"),
             "rate": float(metadata["rate"]),
+            "txWorkMs": float(metadata.get("txWorkMs", 0)),
             "warmup": metadata.get("warmup", ""),
             "duration": metadata.get("duration", ""),
             "durationSeconds": float(metadata["durationSeconds"]),
@@ -129,6 +130,7 @@ def load_runs(pattern: str) -> list[dict]:
 
 def run_sort_key(row: dict) -> tuple:
     return (
+        row["txWorkMs"],
         STRATEGY_ORDER.get(row["strategy"], 999),
         HOT_SET_ORDER.get(row["hotSet"], 999),
         row["hotSet"],
@@ -176,18 +178,20 @@ def summarize(rows: list[dict]) -> list[dict]:
             row["strategy"],
             row["hotSet"],
             row["rate"],
+            row["txWorkMs"],
             row["durationSeconds"],
         )
         grouped[key].append(row)
 
     summaries = []
 
-    for (strategy, hot_set, rate, duration_seconds), group in grouped.items():
+    for (strategy, hot_set, rate, tx_work_ms, duration_seconds), group in grouped.items():
         summary = {
             "strategy": strategy,
             "hotSet": hot_set,
             "contention": CONTENTION_LABEL.get(hot_set, f"hot-{hot_set}"),
             "rate": rate,
+            "txWorkMs": tx_work_ms,
             "durationSeconds": duration_seconds,
             "n": len(group),
             "droppedIterationsTotal": sum(
@@ -205,6 +209,7 @@ def summarize(rows: list[dict]) -> list[dict]:
     return sorted(
         summaries,
         key=lambda row: (
+            row["txWorkMs"],
             STRATEGY_ORDER.get(row["strategy"], 999),
             HOT_SET_ORDER.get(row["hotSet"], 999),
             row["hotSet"],
