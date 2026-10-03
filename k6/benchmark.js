@@ -7,6 +7,7 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const STRATEGY = __ENV.STRATEGY || 'OPT_IMMEDIATE';
 const HOT_SET = Number(__ENV.HOT_SET || 100);
 const RATE = Number(__ENV.RATE || 400);
+const TX_WORK_MS = Number(__ENV.TX_WORK_MS || 0);
 const WARMUP = __ENV.WARMUP || '20s';
 const WARMUP_DRAIN = __ENV.WARMUP_DRAIN || '10s';
 const DURATION = __ENV.DURATION || '60s';
@@ -15,6 +16,10 @@ const OUTPUT = __ENV.OUTPUT || 'summary.json';
 const PRE_ALLOCATED_VUS = Number(__ENV.PRE_ALLOCATED_VUS || 500);
 const MAX_VUS = Number(__ENV.MAX_VUS || 1000);
 const MEASURE_START = `${parseDurationSeconds(WARMUP) + parseDurationSeconds(WARMUP_DRAIN)}s`;
+
+if (!Number.isFinite(TX_WORK_MS) || TX_WORK_MS < 0) {
+  throw new Error(`TX_WORK_MS must be a non-negative number: ${__ENV.TX_WORK_MS}`);
+}
 
 const successfulPurchases = new Counter('successful_purchases');
 const failedPurchases = new Counter('failed_purchases');
@@ -66,7 +71,7 @@ export function setup() {
 export function purchase() {
   const productId = Math.floor(Math.random() * HOT_SET) + 1;
   const response = http.post(
-    `${BASE_URL}/api/purchases/${productId}?strategy=${STRATEGY}`,
+    `${BASE_URL}/api/purchases/${productId}?strategy=${STRATEGY}&txWorkMs=${TX_WORK_MS}`,
     null,
     { tags: { phase: exec.scenario.name } }
   );
@@ -128,6 +133,7 @@ export function handleSummary(data) {
       strategy: STRATEGY,
       hotSet: HOT_SET,
       rate: RATE,
+      txWorkMs: TX_WORK_MS,
       warmup: WARMUP,
       warmupDrain: WARMUP_DRAIN,
       duration: DURATION,
